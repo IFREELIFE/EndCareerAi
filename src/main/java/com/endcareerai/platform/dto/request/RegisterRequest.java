@@ -22,4 +22,6 @@ public class RegisterRequest {
     private String creditCode;    // enterprise only
 
     private String companyName;   // enterprise only
+
+    private String legalRepresentative;  // enterprise only, 法人代表姓名（天眼查三要素验证）
 }

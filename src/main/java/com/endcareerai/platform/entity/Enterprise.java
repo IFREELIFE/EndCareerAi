@@ -22,6 +22,9 @@ public class Enterprise {
     @TableField("credit_code")
     private String creditCode;
 
+    @TableField("legal_representative")
+    private String legalRepresentative;
+
     @TableField("industry")
     private String industry;
 
