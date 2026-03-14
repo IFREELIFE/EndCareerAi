@@ -6,10 +6,18 @@ interface LoginRequest {
 }
 
 interface LoginData {
-  accessToken: string
-  refreshToken: string
-  expiresIn: number
+  token: string
   role: string
+  userId: number
+}
+
+interface RegisterRequest {
+  role: string
+  email: string
+  password: string
+  creditCode?: string
+  companyName?: string
+  legalRepresentative?: string
 }
 
 interface RefreshRequest {
@@ -30,13 +38,17 @@ interface ChangePasswordRequest {
 
 interface Result<T> {
   code: number
-  msg: string
+  message: string
   data: T
 }
 
 export const authApi = {
   login: (data: LoginRequest): Promise<Result<LoginData>> => {
-    return axios.post('/auth/login', data)
+    return axios.post('/auth/login', { email: data.username, password: data.password })
+  },
+  
+  register: (data: RegisterRequest): Promise<Result<LoginData>> => {
+    return axios.post('/auth/register', data)
   },
   
   logout: (refreshToken: string): Promise<Result<null>> => {
@@ -53,6 +65,7 @@ export const authApi = {
 }
 
 export const login = authApi.login
+export const register = authApi.register
 export const logout = authApi.logout
 export const refreshToken = authApi.refreshToken
 export const changePassword = authApi.changePassword

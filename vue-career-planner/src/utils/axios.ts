@@ -90,7 +90,7 @@ axiosInstance.interceptors.response.use(
       }
     }
     
-    const errorMsg = error.response?.data?.msg || error.response?.data?.message || '网络请求失败'
+    const errorMsg = error.response?.data?.message || error.response?.data?.msg || '网络请求失败'
     ElMessage.error(errorMsg)
     
     return Promise.reject(error)

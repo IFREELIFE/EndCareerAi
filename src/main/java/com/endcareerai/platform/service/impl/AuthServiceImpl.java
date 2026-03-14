@@ -3,6 +3,7 @@ package com.endcareerai.platform.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.endcareerai.platform.common.BusinessException;
 import com.endcareerai.platform.common.Constants;
+import com.endcareerai.platform.dto.request.LoginRequest;
 import com.endcareerai.platform.dto.request.RegisterRequest;
 import com.endcareerai.platform.dto.response.LoginResponse;
 import com.endcareerai.platform.entity.Enterprise;
@@ -14,6 +15,7 @@ import com.endcareerai.platform.mapper.UserMapper;
 import com.endcareerai.platform.security.JwtTokenProvider;
 import com.endcareerai.platform.service.AuthService;
 import com.endcareerai.platform.service.RedisService;
+import com.endcareerai.platform.service.TianyanchaService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -38,6 +40,38 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final RedisService redisService;
+    private final TianyanchaService tianyanchaService;
+
+    /**
+     * 用户登录
+     * 校验邮箱和密码，成功后生成 JWT Token 并缓存用户信息到 Redis
+     *
+     * @param request 登录请求体
+     * @return 包含 JWT Token、角色和用户ID的登录响应
+     */
+    @Override
+    public LoginResponse login(LoginRequest request) {
+        User user = userMapper.selectOne(
+                new QueryWrapper<User>().eq("email", request.getEmail()));
+        if (user == null) {
+            throw new BusinessException("邮箱或密码错误");
+        }
+
+        if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
+            throw new BusinessException("邮箱或密码错误");
+        }
+
+        if (user.getStatus() != 1) {
+            throw new BusinessException("账号已被禁用");
+        }
+
+        String token = jwtTokenProvider.generateToken(user.getId(), user.getRole());
+
+        redisService.set(Constants.REDIS_USER_PREFIX + user.getId(), user, 30, TimeUnit.MINUTES);
+
+        log.info("User logged in: id={}, email={}, role={}", user.getId(), user.getEmail(), user.getRole());
+        return new LoginResponse(token, user.getRole(), user.getId());
+    }
 
     /**
      * 多平台账号注册
@@ -78,6 +112,15 @@ public class AuthServiceImpl implements AuthService {
             if (request.getCompanyName() == null || request.getCompanyName().isBlank()) {
                 throw new BusinessException("企业注册需要公司名称");
             }
+            if (request.getLegalRepresentative() == null || request.getLegalRepresentative().isBlank()) {
+                throw new BusinessException("企业注册需要法人代表姓名");
+            }
+            // 调用天眼查企业三要素验证（企业名称、统一社会信用代码、法人代表）
+            tianyanchaService.verifyEnterprise(
+                    request.getCompanyName(),
+                    request.getCreditCode(),
+                    request.getLegalRepresentative()
+            );
         }
 
         // Create user
@@ -101,6 +144,7 @@ public class AuthServiceImpl implements AuthService {
             enterprise.setUserId(user.getId());
             enterprise.setCompanyName(request.getCompanyName());
             enterprise.setCreditCode(request.getCreditCode());
+            enterprise.setLegalRepresentative(request.getLegalRepresentative());
             enterpriseMapper.insert(enterprise);
         }
 

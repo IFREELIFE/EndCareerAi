@@ -80,6 +80,12 @@ llm:
   connect-timeout: 10                        # 连接超时（秒）
   read-timeout: 60                           # 读取超时（秒）
 
+# 天眼查企业验证配置
+tianyancha:
+  enabled: ${TIANYANCHA_ENABLED:false}                        # 是否启用天眼查企业三要素验证，生产环境请设为 true
+  base-url: ${TIANYANCHA_BASE_URL:https://open.api.tianyancha.com}  # 天眼查开放平台 API 地址
+  api-key: ${TIANYANCHA_API_KEY:}                             # TODO: 请通过环境变量 TIANYANCHA_API_KEY 注入你的天眼查 API Token
+
 # 日志配置
 logging:
   level:

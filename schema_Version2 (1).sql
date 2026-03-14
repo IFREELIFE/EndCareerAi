@@ -49,6 +49,7 @@ CREATE TABLE `enterprises` (
   `user_id` BIGINT PRIMARY KEY,
   `company_name` VARCHAR(100) NOT NULL COMMENT '公司名称',
   `credit_code` VARCHAR(50) UNIQUE COMMENT '统一社会信用代码',
+  `legal_representative` VARCHAR(50) COMMENT '法人代表姓名（天眼查三要素验证）',
   `industry` VARCHAR(100) COMMENT '所属行业(如:计算机软件,互联网)',
   `company_size` VARCHAR(50) COMMENT '公司规模(如:20-99人)',
   `company_type` VARCHAR(50) COMMENT '公司类型(如:天使轮/民营)',

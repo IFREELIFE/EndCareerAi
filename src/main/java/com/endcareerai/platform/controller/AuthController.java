@@ -1,6 +1,7 @@
 package com.endcareerai.platform.controller;
 
 import com.endcareerai.platform.common.Result;
+import com.endcareerai.platform.dto.request.LoginRequest;
 import com.endcareerai.platform.dto.request.RegisterRequest;
 import com.endcareerai.platform.dto.response.LoginResponse;
 import com.endcareerai.platform.service.AuthService;
@@ -14,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * 认证与基础信息控制器（模块一）
- * 处理多平台账号注册，支持学生、学校、企业三种角色
+ * 处理登录和多平台账号注册，支持学生、学校、企业三种角色
  */
 @Slf4j
 @RestController
@@ -23,6 +24,19 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final AuthService authService;
+
+    /**
+     * 用户登录接口
+     * 校验邮箱和密码，返回 JWT Token 和角色信息
+     *
+     * @param request 登录请求体，包含邮箱和密码
+     * @return 包含 JWT Token、角色和用户ID的登录响应
+     */
+    @PostMapping("/login")
+    public Result<LoginResponse> login(@RequestBody @Valid LoginRequest request) {
+        LoginResponse loginResponse = authService.login(request);
+        return Result.success(loginResponse);
+    }
 
     /**
      * 多平台账号注册接口

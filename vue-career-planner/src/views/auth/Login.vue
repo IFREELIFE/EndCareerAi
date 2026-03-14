@@ -107,17 +107,19 @@ const loginRules = {
 const getRedirectPath = (role: string): string => {
   const rolePathMap: Record<string, string> = {
     'STUDENT': '/student',
+    'SCHOOL': '/school/profile',
     'SCHOOL_ADMIN': '/school/profile',
+    'ENTERPRISE': '/company/jobs',
     'COMPANY_ADMIN': '/company/jobs',
+    'ADMIN': '/platform/dashboard',
     'PLATFORM_ADMIN': '/platform/dashboard'
   }
   return rolePathMap[role] || '/'
 }
 
 const handleLogin = async () => {
-  // 简单表单验证
   if (!loginForm.username) {
-    ElMessage.error('请输入用户名/手机号')
+    ElMessage.error('请输入邮箱')
     return
   }
   if (!loginForm.password) {
@@ -128,26 +130,25 @@ const handleLogin = async () => {
   try {
     loading.value = true
     
-    // 模拟登录成功，直接跳转到学生端
-    const mockAccessToken = 'mock-access-token'
-    const mockRefreshToken = 'mock-refresh-token'
-    const mockRole = 'STUDENT'
+    const res = await login({ username: loginForm.username, password: loginForm.password })
+    const { token, role, userId } = res.data
     
-    localStorage.setItem('accessToken', mockAccessToken)
-    localStorage.setItem('refreshToken', mockRefreshToken)
+    localStorage.setItem('accessToken', token)
     localStorage.setItem('user', JSON.stringify({ 
-      role: mockRole,
-      username: loginForm.username
+      role: role,
+      username: loginForm.username,
+      userId: userId
     }))
     
     ElMessage.success('登录成功')
-    
-    // 跳转到平台管理端首页
-    router.push(getRedirectPath(mockRole))
+    router.push(getRedirectPath(role))
   } catch (error: any) {
     console.error('Login error:', error)
-    const errorMsg = error.message || '登录失败'
-    ElMessage.error(errorMsg)
+    // axios interceptor already handles API error messages
+    // this handles non-API errors (e.g., network unavailable before request)
+    if (!error.response) {
+      ElMessage.error(error.message || '登录失败，请检查网络连接')
+    }
   } finally {
     loading.value = false
   }
