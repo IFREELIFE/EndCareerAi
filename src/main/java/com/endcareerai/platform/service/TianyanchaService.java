@@ -58,8 +58,8 @@ public class TianyanchaService {
         }
 
         if (apiKey == null || apiKey.isBlank()) {
-            log.warn("天眼查 API Key 未配置，跳过企业三要素验证");
-            return;
+            log.error("天眼查企业验证已启用但 API Key 未配置，无法进行企业三要素验证");
+            throw new BusinessException("企业信息验证服务未正确配置，请联系管理员");
         }
 
         try {

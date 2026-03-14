@@ -144,6 +144,11 @@ const handleLogin = async () => {
     router.push(getRedirectPath(role))
   } catch (error: any) {
     console.error('Login error:', error)
+    // axios interceptor already handles API error messages
+    // this handles non-API errors (e.g., network unavailable before request)
+    if (!error.response) {
+      ElMessage.error(error.message || '登录失败，请检查网络连接')
+    }
   } finally {
     loading.value = false
   }
